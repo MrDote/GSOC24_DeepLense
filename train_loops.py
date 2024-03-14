@@ -47,11 +47,14 @@ def _accuracy_calc(predictions: Tensor, labels: Tensor):
 
 
 
-def train_loop(model: nn.Module, train_loader: DataLoader, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, optimizer: optim.Optimizer, epochs = 1):
+def train_loop(model: nn.Module, train_loader: DataLoader, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, optimizer: optim.Optimizer, epochs = 1, step_size: int = 5):
     
     device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
 
     model = model.to(device)
+
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=step_size, gamma=0.1)
+
 
     best_accuracy = 0.
     
@@ -69,7 +72,7 @@ def train_loop(model: nn.Module, train_loader: DataLoader, test_loader: DataLoad
 
     for epoch in range(epochs):
 
-        print(f"Training and testing for epoch {epoch+1} began")
+        print(f"Training and testing for epoch {epoch+1} began with learning rate: {optimizer.param_groups[0]['lr']}")
 
         batch_loss = 0.
         batch_accuracy = 0.
@@ -147,19 +150,22 @@ def train_loop(model: nn.Module, train_loader: DataLoader, test_loader: DataLoad
                 batch_count += 1
             
 
-        avg_batch_loss = batch_loss/batch_count
-        epoch_accuracy = batch_accuracy/batch_count
+            avg_batch_loss = batch_loss/batch_count
+            epoch_accuracy = batch_accuracy/batch_count
 
-        print(f"Epoch : {epoch + 1}, Testing Loss : {round(avg_batch_loss, 3)}, Testing Accuracy : {round(epoch_accuracy, 3)}")
+            print(f"Epoch : {epoch + 1}, Testing Loss : {round(avg_batch_loss, 3)}, Testing Accuracy : {round(epoch_accuracy, 3)}")
 
-        test_loss_list.append(avg_batch_loss)
-        test_acc_list.append(epoch_accuracy)
+            test_loss_list.append(avg_batch_loss)
+            test_acc_list.append(epoch_accuracy)
 
 
-        r2 = r2_score.compute()
-        test_r2_list.append(r2)
-        print(f"Testing R2 : {round(test_r2_list[-1].item(), 3)}")
-        r2_score.reset()
+            r2 = r2_score.compute()
+            test_r2_list.append(r2)
+            print(f"Testing R2 : {round(test_r2_list[-1].item(), 3)}")
+            r2_score.reset()
+
+        
+        lr_scheduler.step()
 
 
         #* Save model performing best on test dataset

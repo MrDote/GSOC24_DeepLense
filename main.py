@@ -16,7 +16,7 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
 
 
-    train_loader, test_loader, img_size = Lens(batch_size=1, crop_size=100, img_size=80, rotation_degrees=90, class_samples=2)()
+    train_loader, test_loader, img_size = Lens(batch_size=1, crop_size=100, img_size=80, rotation_degrees=90, class_samples=10000)()
 
     print("Datasets loaded")
-    train_loop(model, train_loader, test_loader, criterion, optimizer, epochs=20)
+    train_loop(model, train_loader, test_loader, criterion, optimizer, epochs=20, step_size=8)

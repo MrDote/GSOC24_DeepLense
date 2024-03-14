@@ -1,6 +1,8 @@
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 from torchvision import transforms
 from sklearn.model_selection import train_test_split
+import torch
+
 
 
 import numpy as np
@@ -41,7 +43,7 @@ class _LensData(Dataset):
             files = os.listdir(os.path.join(prefix, folder))
 
             for (k, file) in enumerate(files):
-                if class_samples == k:
+                if class_samples == int(k):
                     break
                 im = np.load(os.path.join(prefix, folder, file))
                 data.append(im)
@@ -50,6 +52,11 @@ class _LensData(Dataset):
         
         data = np.array(data, dtype=np.float32).transpose((0, 2, 3, 1))
         labels = np.array(labels, dtype=np.int32)
+
+        if train:
+            print("Training data size: " + str(len(data)))
+        else:
+            print("Testing data size: " + str(len(data)))
 
 
 
@@ -107,7 +114,6 @@ class _LensData(Dataset):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    import torch
 
     class EdgeDetectionTransform:
         def __init__(self, kernel_size=3):
@@ -216,8 +222,8 @@ class Lens:
                         scale=self.scale
                     ),
                     transforms.ToTensor(),
+                    _MinMaxNormalizeImage(),
                     transforms.Normalize(mean=(0.5,), std=(0.5,)),
-                    _MinMaxNormalizeImage()
                 ]),
                 class_samples=self.class_samples
             ),
@@ -237,10 +243,10 @@ class Lens:
                     transforms.CenterCrop(self.crop_size),
                     transforms.Resize(self.img_size),
                     transforms.ToTensor(),
+                    _MinMaxNormalizeImage(),
                     transforms.Normalize(mean=(0.5,), std=(0.5,)),
-                    _MinMaxNormalizeImage()
                 ]),
-                class_samples=self.class_samples/5
+                class_samples=self.class_samples/4
             ),
             
             batch_size=self.batch_size,
