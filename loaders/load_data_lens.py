@@ -1,6 +1,6 @@
-from torch.utils.data import Dataset, DataLoader, TensorDataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import train_test_split
 import torch
 
 
@@ -28,26 +28,27 @@ class _LensData(Dataset):
 
         # Initialize lists for each folder
         FOLDERS = ['no', 'sphere', 'vort']
+        # FOLDERS = ['sphere']
 
         if train:
-            prefix = "data/train"
+            prefix = "data/dataset/train"
         else:
-            prefix = "data/val"
+            prefix = "data/dataset/val"
 
 
         data = []
         labels = []
 
-        for (i, folder) in enumerate(FOLDERS):
+        for (index, folder) in enumerate(FOLDERS):
 
             files = os.listdir(os.path.join(prefix, folder))
 
             for (k, file) in enumerate(files):
-                if class_samples == int(k):
-                    break
+                # if class_samples == int(k):
+                #     break
                 im = np.load(os.path.join(prefix, folder, file))
                 data.append(im)
-                labels.append(i)
+                labels.append(index)
 
         
         data = np.array(data, dtype=np.float32).transpose((0, 2, 3, 1))
@@ -79,7 +80,7 @@ class _LensData(Dataset):
         # data_train, data_test, labels_train, labels_test = train_test_split(data, labels, test_size=0.1, random_state=42, shuffle=False)
                 
         indices = np.arange(len(data))
-        # np.random.shuffle(indices)
+        np.random.shuffle(indices)
 
         self.data = data[indices]
         self.labels = labels[indices]
@@ -151,35 +152,29 @@ if __name__ == '__main__':
 
 
 
-    samples = 3
+    samples = 12
     dataset = _LensData(
         train=True,
         transform=transforms.Compose([
             transforms.ToPILImage(),
-            transforms.CenterCrop(100),
-            transforms.Resize(100),
+            # transforms.CenterCrop(100),
+            # transforms.Resize(100),
             transforms.ToTensor(),
-            EdgeDetectionTransform(),
-            _MinMaxNormalizeImage(),
-            transforms.Normalize(mean=(0.5,), std=(0.5,)),
-            # AdjustBrightness(2)
         ]),
         class_samples=samples
     )
 
-    IMGS_IN_ROW = 3
+    IMGS_IN_ROW = 4
 
     # print(len(dataset))
 
-    fig, axes = plt.subplots(int(len(dataset)/IMGS_IN_ROW), IMGS_IN_ROW, sharex='all', sharey='all', figsize=(20,15))
+    fig, axes = plt.subplots(int(len(dataset)/IMGS_IN_ROW), IMGS_IN_ROW, sharex='all', sharey='all', figsize=(15,12))
     plt.axis('off')
 
     axes = axes.flatten()
 
     for i, ax in enumerate(axes):
         print(f"{i} --> ", dataset[i][1])
-        print(torch.max(dataset[i][0][0, :, :]))
-        print(torch.min(dataset[i][0][0, :, :]))
         ax.imshow(dataset[i][0][0, :, :])
 
 
@@ -221,6 +216,7 @@ class Lens:
                         translate=self.translate,
                         scale=self.scale
                     ),
+                    transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     _MinMaxNormalizeImage(),
                     transforms.Normalize(mean=(0.5,), std=(0.5,)),
@@ -229,7 +225,7 @@ class Lens:
             ),
             
             batch_size=self.batch_size,
-            shuffle=False,
+            shuffle=True,
             num_workers=self.num_workers
         )
 

@@ -10,7 +10,7 @@ class ResNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.model = torchvision.models.resnet50()
+        self.model = torchvision.models.resnet18()
 
         self.model.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
         # self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
@@ -21,7 +21,8 @@ class ResNet(nn.Module):
         # self.model.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         #* resnet34
-        self.model.fc = nn.Linear(2048, 3)
+        self.model.fc = nn.Linear(512, 3)
+        # self.model.fc = nn.Linear(2048, 3)
 
 
     def forward(self, x):

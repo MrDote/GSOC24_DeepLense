@@ -90,7 +90,7 @@ def train_loop(model: nn.Module, train_loader: DataLoader, test_loader: DataLoad
             # print("Outputs shape: ", outputs.shape)
             # print("Labels shape: ", labels.shape)
 
-            loss: Tensor = criterion(outputs, labels)
+            loss: Tensor = criterion(outputs, labels.long())
 
             optimizer.zero_grad()
             loss.backward()
